@@ -92,7 +92,8 @@ venv.bak/
 
 #IntelliJ
 .idea
-resources/
+resources/Task1/
+resources/Task2/
 
 # Spyder project settings
 .spyderproject
