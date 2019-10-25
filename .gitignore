@@ -94,6 +94,11 @@ venv.bak/
 .idea
 resources/Task1/
 resources/Task2/
+*.aux
+*.synctex.gz
+*.out
+*.blg
+*.bbl
 
 # Spyder project settings
 .spyderproject
