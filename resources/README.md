@@ -15,3 +15,13 @@ The directory representation is as follows:
                    -> Training
 
 
+## Implementation Techniques:
+
+1) Task 1:
+      1) 
+      
+## Commands:
+
+To run the project program, type the following command:
+
+`python main.py -m Train -dir original_retinal_images -imf jpg`
