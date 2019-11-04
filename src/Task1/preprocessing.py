@@ -1,28 +1,10 @@
 import cv2
-import os
-import numpy as np
-import matplotlib.pyplot as plt
-
-
-def read_image(imagename, type):
-    return cv2.imread(imagename, type)
-
 
 def reduce_resolution(image, size):
     dim = (size, size)
-    resized = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
-    print('Resized Dimensions : ', resized.shape)
-    return resized
-
-
-def display_image(image):
-    cv2.imshow('image', image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
-def save_image(savename, image):
-    cv2.imwrite(savename + ".jpg", image)
+    resized_image = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
+    print('Re-sized Dimensions : ', resized_image.shape)
+    return resized_image
 
 
 def scaleradius(img, scale):
@@ -38,7 +20,6 @@ def normalization(image):
 
 
 def enhance(image, clip_limit=3):
-    # image = cv2.imread(imagepath)
     # convert image to LAB color model
     image_lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
 
@@ -55,14 +36,3 @@ def enhance(image, clip_limit=3):
     # convert image from LAB color model back to BGR color model
     final_image = cv2.cvtColor(merged_channels, cv2.COLOR_LAB2BGR)
     return final_image
-
-
-image = read_image("../../resources/Task1/Train/original_retinal_images/IDRiD_02.jpg", 1)
-
-# image=reduce_resolution(image,512)
-print(image.shape)
-image = scaleradius(image, 300)
-image = normalization(image)
-print(image.shape)
-image = enhance(image)
-display_image(image)
