@@ -15,6 +15,9 @@ def get_command_line_args():
     parser.add_argument('--learning_rate', '-lr', type=float,
                         help="Learning rate of the model",
                         default=0.001)
+    parser.add_argument('--batch_size', '-b', type=int,
+                        help="Batch size of the model",
+                        default=8)
 
     return parser.parse_args()
 
