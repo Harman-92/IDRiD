@@ -28,6 +28,8 @@ class UNet(nn.Module):
         super().__init__()
         self.in_channels = in_channels
         self.num_classes = num_classes
+
+
         self.down_encode_conv_layer1 = double_conv(self.in_channels, 64)
         self.down_encode_conv_layer2 = double_conv(64, 128)
         self.down_encode_conv_layer3 = double_conv(128, 256)
