@@ -96,7 +96,6 @@ resources/Task1/
 resources/Task2/
 *.aux
 *.synctex.gz
-*.log
 *.out
 *.blg
 *.bbl
