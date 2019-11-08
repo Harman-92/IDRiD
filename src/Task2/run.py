@@ -44,10 +44,15 @@ for layer in train_pyramid:
             # else:
             #     layer_out[y,x] = 1 - eig_2/eig_1
 
-#TODO: iterate through each image in out_pyramid
+# train_out = np.zeros(train_green.shape)
+# # iterate through each image in out_pyramid
+# for layer in out_pyramid:
+#     # upscale layer to original size
+#     if layer.shape != train_green.shape:
+#         layer = cv2.resize(layer, train_green.shape)
 
-#TODO: upscale them to the original size
+#     # apply hysteresis to get binary image
+#     ret, thresh = cv2.threshold(layer, 217, 237, cv2.THRESH_BINARY) 
 
-#TODO: apply hysteresis to get binary image
-
-#TODO: combine all images to create final image
+#     # combine all images to create final image
+#     train_out = cv2.bitwise_and(train_out, thresh)
