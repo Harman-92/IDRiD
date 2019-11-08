@@ -6,6 +6,7 @@ import torch.nn.functional as F
 The dimensions of the H, W stays the same and it is done by using padding to the image 
 """
 
+
 def double_conv(in_channels, out_channels):
     return [nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1),
             nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=1)]
@@ -28,7 +29,6 @@ class UNet(nn.Module):
         super().__init__()
         self.in_channels = in_channels
         self.num_classes = num_classes
-
 
         self.down_encode_conv_layer1 = double_conv(self.in_channels, 64)
         self.down_encode_conv_layer2 = double_conv(64, 128)
