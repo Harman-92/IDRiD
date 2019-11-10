@@ -20,6 +20,8 @@ def save_image(file_name, image):
 """
 Given a directory filled with images, it returns a list of arrays of the images 
 """
+
+
 def read_images_from_folder(dir_path, image_extension_type):
     image_list = []
     image_path = os.path.join(dir_path, '*.' + image_extension_type)
