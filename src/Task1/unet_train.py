@@ -6,13 +6,12 @@ import numpy as np
 
 
 class UNetTrain:
-    def __init__(self, train_length, train_loader, validation_length, validation_loader, batch_size=8, lr=0.001,
+    def __init__(self, train_length, train_loader, validation_length, validation_loader, lr=0.001,
                  epochs=5):
         self.train_length = train_length
         self.train_loader = train_loader
         self.validation_length = validation_length
         self.validation_loader = validation_loader
-        self.batch_size = batch_size
         self.lr = lr
         self.epochs = epochs
 
@@ -25,13 +24,12 @@ class UNetTrain:
         print('''
             Starting training:
                 Epochs: {}
-                Batch size: {}
                 Learning rate: {}
                 Training size: {}
                 Validation size: {}
                 Checkpoints: {}
                 CUDA: {}
-            '''.format(self.epochs, self.batch_size, self.lr, self.train_length,
+            '''.format(self.epochs, self.lr, self.train_length,
                        self.validation_length, str(save_cp), str(device)))
 
         learning_rate = self.lr
@@ -50,12 +48,12 @@ class UNetTrain:
             for i, batch in enumerate(self.train_loader):
                 start = time.time()
 
-                images = batch[0].type(torch.FloatTensor)
-                labels = batch[1].type(torch.FloatTensor)
-
-                images = images.to(device)
-                labels = labels.to(device)
+                images = batch[0].type(torch.FloatTensor).to(device)
+                labels = batch[1].type(torch.FloatTensor).to(device)
+                images = images.permute(0, 3, 1, 2)
+                labels = labels.permute(0, 3, 1, 2)
                 del batch
+
                 # Forward pass
                 outputs = net(images)
                 loss = criterion(outputs, labels)
@@ -88,14 +86,13 @@ class UNetTrain:
                         val_losses = []
 
                         for k, batch in enumerate(self.validation_loader):
-                            validation_images = batch[0].type(torch.FloatTensor)
-                            validation_targets = batch[1].type(torch.FloatTensor)
+                            validation_images = batch[0].type(torch.FloatTensor).to(device)
+                            validation_targets = batch[1].type(torch.FloatTensor).to(device)
 
-                            validation_images = validation_images.to(device)
-                            validation_targets = validation_targets.to(device)
-                            # predict
+                            # Predict
                             masks_pred = net(validation_images)
-                            # calculate loss
+
+                            # Calculate loss
                             val_loss = criterion(masks_pred, validation_targets).item()
                             val_losses.append(val_loss)
 
