@@ -22,7 +22,7 @@ class UNetTrain:
         model_checkpoints = 'checkpoints/'
 
         print('''
-            Starting training:
+            Start train:
                 Epochs: {}
                 Learning rate: {}
                 Training size: {}
