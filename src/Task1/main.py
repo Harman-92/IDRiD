@@ -1,16 +1,14 @@
-import preprocessing as pre
-from torch.utils.data import DataLoader, random_split
-
-import src.Task1.utils as utils
 import argparse
-import unet
-import torch
-import src.Task1.dataset as dataset
-import numpy as np
-
 import warnings
 
+import numpy as np
+import torch
+from torch.utils.data import DataLoader, random_split
+
+import src.Task1.dataset as dataset
+import src.Task1.utils as utils
 from src.Task1.unet_train import UNetTrain
+from src.Task1.unet_original import UNet
 
 warnings.filterwarnings("ignore")
 
@@ -74,14 +72,15 @@ train_dataset, validation_dataset = random_split(dataset, [train_size, validatio
 print(len(train_dataset))
 print(len(validation_dataset))
 
-train_dataloader = DataLoader(train_dataset, batch_size=10,
+train_dataloader = DataLoader(train_dataset, batch_size=2,
                               shuffle=True)
 for i, batch in enumerate(train_dataloader):
     print(i, len(batch[0][0]))
 
-validation_dataloader = DataLoader(validation_dataset, batch_size=10,
+validation_dataloader = DataLoader(validation_dataset, batch_size=2,
                                    shuffle=False)
 
-unet_model = unet.UNet(3, 4)
+unet_model = UNet(3, 4)
 train = UNetTrain(len(train_dataset), train_dataloader, len(validation_dataset), validation_dataloader)
 train.train_net(net=unet_model, device=device, save_cp=True)
+
