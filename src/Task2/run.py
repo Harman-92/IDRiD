@@ -4,6 +4,7 @@ import sys
 from skimage import exposure
 import imageio
 from PIL import Image
+from math import pow, sqrt, exp
 
 image_name = "21_training"
 
@@ -37,9 +38,14 @@ train_green = train_src[:,:,1]
 # mask = mask_pyramid[2]
 
 # currently testing with only input image
-layer = train_green
+layer = train_green.astype(np.float32)
 mask = train_mask
+
+print(layer.shape)
+print(mask.shape)
 print(layer.dtype)
+
+
 cv2.imshow('Layer a', layer)
 
 # perform histogram stretching
@@ -48,11 +54,13 @@ print(layer.dtype)
 cv2.imshow('Layer b', layer)
 
 # perform bilateral filter
-layer = cv2.bilateralFilter(layer,5,150,150)
+layer = cv2.bilateralFilter(layer,4,150,150)
 print(layer.dtype)
 cv2.imshow('Layer c', layer)
 
-cv2.waitKey(0)
+#ret, layer = cv2.threshold(layer, 217, 255, cv2.THRESH_BINARY_INV)
+#cv2.imshow('Layer d', layer)
+#cv2.waitKey(0)
 
 #create padded input and blank output
 layer_out = np.zeros(layer.shape, dtype=np.uint8)
@@ -67,7 +75,7 @@ for y in range(h):
     for x in range(w):
         hessian = np.array([[dfxx[y,x], dfxy[y,x]], [dfyx[y,x], dfyy[y,x]]])
 
-        # calculate eigenvalues 
+        # calculate eigenvaluethes
         eigens, _ = np.linalg.eig(hessian)
         # print(f, hessian, eigens)
         eigens = abs(eigens)
@@ -76,9 +84,46 @@ for y in range(h):
         if max(eigens) == 0:
             layer_out[y,x] = 0
         else:
-            layer_out[y,x] = (1 - min(eigens) / max(eigens)) * 255
+            e_min = min(eigens)
+            e_max = max(eigens)
+            Rb = e_min/e_max
+            S = sqrt(pow(e_min, 2) + pow(e_max, 2))
+            b = 0.05
+            c = 0.04
+            v_feature = exp(-1 * (pow(Rb, 2)/(2*pow(b, 2)))) * (1 - exp(-1 * (pow(S, 2)/(2*pow(c, 2)))))
+            #layer_out[y,x] = (1 - min(eigens) / max(eigens)) * 255
+            layer_out[y,x] = v_feature * 255
 
-cv2.imshow('Layer', layer_out)
+# Hysteresis thresholding
+layer_pad = cv2.copyMakeBorder(layer_out,1,1,1,1,cv2.BORDER_DEFAULT)
+
+h, w = layer_out.shape
+layer_thresh = np.zeros(layer_out.shape)
+for y in range(h):
+    for x in range(w):
+        h_max = 75
+        h_min = 20
+        # create 3x3 window around each pixel in layer
+        f = layer_pad[y:y+3, x:x+3]
+        if layer_out[y, x] >= h_max:
+            layer_thresh[y, x] = 255
+        elif h_min <= layer_out[y, x] < h_max:
+            gt = f.__ge__(h_max)
+            if gt.any():
+                layer_thresh[y, x] = 255
+
+cv2.imshow('Output layer without thresholding', layer_out)
+
+
+ret, thresh = cv2.threshold(layer_out, 217, 255, cv2.THRESH_BINARY)
+
+# Masking
+thresh = cv2.bitwise_and(src1=thresh.astype(np.float32), src2=mask.astype(np.float32))
+layer_thresh = cv2.bitwise_and(src1=layer_thresh.astype(np.float32), src2=mask.astype(np.float32))
+
+cv2.imshow('Simple thresholding', thresh)
+cv2.imshow('Hysteresis thresholding', layer_thresh)
+print('Completed')
 cv2.waitKey(0)
 
 # h,w = layer.shape
