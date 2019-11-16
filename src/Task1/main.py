@@ -12,6 +12,7 @@ from unet_custom import UNetSync as UNet
 
 warnings.filterwarnings("ignore")
 
+
 def get_command_line_args():
     parser = argparse.ArgumentParser(description='Get info about the task',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -19,8 +20,8 @@ def get_command_line_args():
                         help="Specify the model category like train / test")
     parser.add_argument('--directory', '-dir', metavar='INPUT',
                         help='Directory name of images', required=False)
-    #parser.add_argument('--image_format', '-imf', metavar='INPUT',
-                        #help='Image formatting type', required=True, default="jpg")
+    # parser.add_argument('--image_format', '-imf', metavar='INPUT',
+    # help='Image formatting type', required=True, default="jpg")
     parser.add_argument('--learning_rate', '-lr', type=float,
                         help="Learning rate of the model",
                         default=0.001)
@@ -43,9 +44,9 @@ def get_command_line_args():
 # no_of_epochs = args.no_epochs
 # validation_percentage = args.val_size
 #
-#image = utils.read_image("../../resources/Task1/Train/images/IDRiD_02.tif")
-#print(image.shape)
-#path=os.path.join()
+# image = utils.read_image("../../resources/Task1/Train/images/IDRiD_02.tif")
+# print(image.shape)
+# path=os.path.join()
 # images = utils.read_images_from_folder(args.model_category, args.directory, args.image_format)
 # print(len(images))
 #
@@ -58,25 +59,27 @@ def get_command_line_args():
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #
 # torch.manual_seed(42)
-#print(utils.get_train_dir())
+# print(utils.get_train_dir())
 # Train dataset import
 dataset = dataset.IDRiDDataset(utils.get_train_dir())
 print(len(dataset))
-print(np.array(dataset).shape)
+x, y = dataset[0]
+print(np.array(x).shape, np.array(y).shape)
 
 # Train and validation split
 train_size = int((1 - 0.2) * len(dataset))
 validation_size = len(dataset) - train_size
 train_dataset, validation_dataset = random_split(dataset, [train_size, validation_size])
-print(len(train_dataset))
-print(len(validation_dataset))
+print('Train dataset', len(train_dataset))
+print('Validation dataset', len(validation_dataset))
 
-train_dataloader = DataLoader(train_dataset, batch_size=1, 
+train_dataloader = DataLoader(train_dataset, batch_size=2,
                               shuffle=True)
 for i, batch in enumerate(train_dataloader):
-    print(i, len(batch[0][0]))
+    # x, y = batch
+    print(i, len(batch))
 
-validation_dataloader = DataLoader(validation_dataset, batch_size=1, 
+validation_dataloader = DataLoader(validation_dataset, batch_size=1,
                                    shuffle=False)
 
 unet_model = UNet(3).to(device)
