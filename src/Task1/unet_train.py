@@ -5,6 +5,8 @@ import time
 import numpy as np
 
 torch.set_default_tensor_type('torch.cuda.FloatTensor')
+
+
 class UNetTrain:
     def __init__(self, train_length, train_loader, validation_length, validation_loader, lr=0.001,
                  epochs=5):
@@ -34,7 +36,7 @@ class UNetTrain:
 
         learning_rate = self.lr
         optimizer = opt.Adam(net.parameters(), lr=learning_rate)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.BCEWithLogitsLoss()
 
         train_history = {'loss': [], 'train_step': []}
         validation_history = {'val_loss': [], 'val_step': []}
@@ -47,12 +49,14 @@ class UNetTrain:
             net.train()
             epoch_loss = 0
             for i, batch in enumerate(self.train_loader):
+                print(i)
                 start = time.time()
-
-                images = batch[0].type(torch.FloatTensor).to(device)
-                labels = batch[1].type(torch.FloatTensor).to(device)
-                images = images.permute(0, 3, 1, 2)
-                labels = labels.permute(0, 3, 1, 2)
+                input, label = batch
+                # TO-DO: Make sure the images and labels are getting the right comparison data
+                images = input.type(torch.FloatTensor).to(device).permute(0, 3, 1, 2)
+                labels = label.type(torch.FloatTensor).to(device).view(len(label), -1)
+                print(images.size())
+                print(labels.size())
                 del batch
 
                 # Forward pass

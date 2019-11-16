@@ -111,4 +111,5 @@ class UNetSync(nn.Module):
         # Final layer
         x = self.final_layer(x)
 
-        return torch.squeeze(x, dim=1)  # Remove the channel dimension as we only have a single channel on the output
+        x = torch.squeeze(x, dim=1)
+        return x.view(x.size(0), -1)  # Remove the channel dimension as we only have a single channel on the output
