@@ -3,8 +3,8 @@ import glob
 import os
 
 
-def read_image(image_name, type):
-    return cv2.imread(image_name, type)
+def read_image(image_name):
+    return cv2.imread(image_name, cv2.IMREAD_UNCHANGED)
 
 
 def display_image(image):
@@ -26,7 +26,7 @@ def read_images_from_folder(dir_path, image_extension_type):
     image_list = []
     image_path = os.path.join(dir_path, '*.' + image_extension_type)
     for image_file_name in glob.glob(image_path):
-        image = read_image(image_file_name, 1)
+        image = read_image(image_file_name)
         if image is not None:
             image_list.append(image)
 

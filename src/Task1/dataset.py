@@ -1,11 +1,11 @@
 import os
 from torch.utils.data import Dataset
-import src.Task1.utils as utils
+import utils as utils
 import glob
 import numpy as np
 
 class IDRiDDataset(Dataset):
-    def __init__(self, data_root, image_extension_type='jpg', transform=None):
+    def __init__(self, data_root, image_extension_type='tif', transform=None):
         self.data_root = data_root
         self.input = []
         self.output = []
@@ -22,12 +22,14 @@ class IDRiDDataset(Dataset):
 
     def _init_dataset(self):
         # Use the original dataset folder
-        if 'original_retinal_images' in os.listdir(self.data_root):
-            self.input = self.read_images_from_folder(os.path.join(self.data_root, 'original_retinal_images'))
+        if 'images' in os.listdir(self.data_root):
+            path=os.path.join(self.data_root,'images')
+            self.input = utils.read_images_from_folder(path,self.image_extension_type)
 
         # Use the target dataset folder
-        if 'original_retinal_images' in os.listdir(self.data_root):
-            self.output = self.read_images_from_folder(os.path.join(self.data_root, 'original_retinal_images'))
+        if 'masks' in os.listdir(self.data_root):
+            path=os.path.join(self.data_root,'masks')
+            self.output = utils.read_images_from_folder(path,self.image_extension_type)
 
         if len(self.input) == len(self.output):
             for i in range(len(self.input)):
@@ -37,13 +39,3 @@ class IDRiDDataset(Dataset):
 
         if self.transform:
             self.data_samples = self.transform(np.array(self.data_samples))
-
-    def read_images_from_folder(self, dir_path):
-        image_list = []
-        image_path = os.path.join(dir_path, '*.' + self.image_extension_type)
-        for image_file_name in glob.glob(image_path):
-            image = utils.read_image(image_file_name, 1)
-            if image is not None:
-                image_list.append(image)
-
-        return image_list
