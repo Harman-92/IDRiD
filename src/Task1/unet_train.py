@@ -4,7 +4,7 @@ import torch.nn as nn
 import time
 import numpy as np
 
-
+torch.set_default_tensor_type('torch.cuda.FloatTensor')
 class UNetTrain:
     def __init__(self, train_length, train_loader, validation_length, validation_loader, lr=0.001,
                  epochs=5):
@@ -43,6 +43,7 @@ class UNetTrain:
         total_step = len(self.train_loader)
         for epoch in range(self.epochs):
             print('Starting epoch {}/{}.'.format(epoch + 1, self.epochs))
+            net=net.cuda()
             net.train()
             epoch_loss = 0
             for i, batch in enumerate(self.train_loader):

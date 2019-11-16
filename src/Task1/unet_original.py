@@ -5,7 +5,7 @@ import torch.nn.functional as F
 """
 The dimensions of the H, W stays the same and it is done by using padding to the image 
 """
-
+torch.set_default_tensor_type('torch.cuda.FloatTensor')
 
 def double_conv(in_channels, out_channels):
     return [nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1),
