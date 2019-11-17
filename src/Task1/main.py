@@ -60,9 +60,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #
 # torch.manual_seed(42)
 # print(utils.get_train_dir())
+
+# Global imports
+num_of_classes = 5
+batch_size = 2
+
 # Train dataset import
 dataset = dataset.IDRiDDataset(utils.get_train_dir())
-print(len(dataset))
 x, y = dataset[0]
 print(np.array(x).shape, np.array(y).shape)
 
@@ -73,19 +77,18 @@ train_dataset, validation_dataset = random_split(dataset, [train_size, validatio
 print('Train dataset', len(train_dataset))
 print('Validation dataset', len(validation_dataset))
 
-train_dataloader = DataLoader(train_dataset, batch_size=2,
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size,
                               shuffle=True)
 for i, batch in enumerate(train_dataloader):
     # x, y = batch
     print(i, len(batch))
 
-validation_dataloader = DataLoader(validation_dataset, batch_size=1,
+validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size,
                                    shuffle=False)
 
-unet_model = UNet(3,5).to(device)
+unet_model = UNet(3, num_of_classes).to(device)
 train = UNetTrain(len(train_dataset), train_dataloader, len(validation_dataset), validation_dataloader)
 train.train_net(net=unet_model, device=device, save_cp=True)
-
 
 # losses = []
 # val_losses = []
