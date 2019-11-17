@@ -82,6 +82,29 @@ for i, batch in enumerate(train_dataloader):
 validation_dataloader = DataLoader(validation_dataset, batch_size=1,
                                    shuffle=False)
 
-unet_model = UNet(3).to(device)
+unet_model = UNet(3,5).to(device)
 train = UNetTrain(len(train_dataset), train_dataloader, len(validation_dataset), validation_dataloader)
 train.train_net(net=unet_model, device=device, save_cp=True)
+
+
+# losses = []
+# val_losses = []
+#
+# for epoch in range(n_epochs):
+#     for x_batch, y_batch in train_loader:
+#         x_batch = x_batch.to(device)
+#         y_batch = y_batch.to(device)
+#
+#         loss = train_step(x_batch, y_batch)
+#         losses.append(loss)
+#
+#     with torch.no_grad():
+#         for x_val, y_val in val_loader:
+#             x_val = x_val.to(device)
+#             y_val = y_val.to(device)
+#
+#             model.eval()
+#
+#             yhat = model(x_val)
+#             val_loss = loss_fn(y_val, yhat)
+#             val_losses.append(val_loss.item())
