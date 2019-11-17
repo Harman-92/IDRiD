@@ -26,6 +26,7 @@ class DoubleConv2D(nn.Module):
         x = self.relu2(self.batch_norm2(self.conv2(x)))
         return x
 
+
 def up_conv(in_channels, out_channels):
     return nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1)
 
@@ -112,4 +113,4 @@ class UNetSync(nn.Module):
         # Final layer
         x = self.final_layer(x)
 
-        return x # Remove the channel dimension as we only have a single channel on the output
+        return x  # Remove the channel dimension as we only have a single channel on the output

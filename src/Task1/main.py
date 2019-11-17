@@ -86,6 +86,7 @@ for i, batch in enumerate(train_dataloader):
 validation_dataloader = DataLoader(validation_dataset, batch_size=batch_size,
                                    shuffle=False)
 
+
 unet_model = UNet(3, num_of_classes).to(device)
 train = UNetTrain(len(train_dataset), train_dataloader, len(validation_dataset), validation_dataloader)
 train.train_net(net=unet_model, device=device, save_cp=True)
