@@ -47,7 +47,8 @@ class UNetTrain:
             pred_inds = pred == cls
             target_inds = target == cls
             # print(pred_inds[target_inds].long().sum().data.cpu().item())
-            intersection = ((pred_inds[target_inds]).long().sum().data.cpu().item())  # Cast to long to prevent overflows
+            intersection = (
+                (pred_inds[target_inds]).long().sum().data.cpu().item())  # Cast to long to prevent overflows
             union = pred_inds.long().sum().data.cpu().item() + target_inds.long().sum().data.cpu().item() - intersection
             if union == 0:
                 ious.append(float('nan'))  # If there is no ground truth, do not include in evaluation
@@ -167,7 +168,7 @@ class UNetTrain:
                 validation_history['val_loss_epoch'].append(np.mean(val_losses))
                 validation_history['val_dice_epoch'].append(np.mean(val_dice_score))
                 validation_history['val_jacc_epoch'].append(self.get_epoch_accuracies_per_classes(val_jacc_score))
-                print('Validation Loss: {}, Validation Dice: {}, Validation Epoch: {}, Validation Jaccard'
+                print('Validation Loss: {}, Validation Dice: {}, Validation Epoch: {}, Validation Jaccard: {}'
                       .format(np.mean(val_losses), np.mean(val_dice_score), epoch + 1,
                               self.get_epoch_accuracies_per_classes(val_jacc_score)))
 
@@ -178,7 +179,7 @@ class UNetTrain:
             print('Epoch: {}, Train Loss: {}, Train Dice: {}, Train Jaccard: {}, Validation Loss: '
                   '{}, Validation Dice: {}, Validation Jaccard: {} '.format(epoch + 1,
                                                                             epoch_loss / total_step,
-                                                                            dice_score/ total_step,
+                                                                            dice_score / total_step,
                                                                             self.get_epoch_accuracies_per_classes(
                                                                                 jaccard_score),
                                                                             validation_history['val_loss_epoch'][epoch],
