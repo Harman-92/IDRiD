@@ -4,20 +4,69 @@ import torch.nn as nn
 import time
 import numpy as np
 from tqdm import tqdm
+from sklearn.metrics import jaccard_score as jsc
 
 
 # torch.set_default_tensor_type('torch.FloatTensor')
 
 
 class UNetTrain:
-    def __init__(self, train_length, train_loader, validation_length, validation_loader, lr=0.0001,
+    def __init__(self, train_length, train_loader, validation_length, validation_loader, num_of_classes=5, lr=0.0001,
                  epochs=5):
         self.train_length = train_length
         self.train_loader = train_loader
+        self.num_of_classes = num_of_classes
         self.validation_length = validation_length
         self.validation_loader = validation_loader
         self.lr = lr
         self.epochs = epochs
+
+    def dice_score(self, input, target):
+        # To avoid zero in the numerator
+        smooth = 1
+
+        n = target.size(0)
+        input = input.argmax(dim=1).view(n, -1)
+        # print('Input dice', input.size())
+        target = target.view(n, -1)
+        # print('Target dice', target.size())
+
+        # Compute dice
+        intersect = (input * target).sum()
+        union = input.sum() + target.sum()
+
+        return 1 - ((2. * intersect + smooth) / (union + smooth))
+
+    def iou(self, pred, target):
+        ious = []
+        pred = pred.argmax(dim=1).view(-1)
+        target = target.view(-1)
+
+        # Ignore IoU for background class ("0")
+        for cls in range(1, self.num_of_classes):  # This goes from 1:n_classes-1 -> class "0" is ignored
+            pred_inds = pred == cls
+            target_inds = target == cls
+            # print(pred_inds[target_inds].long().sum().data.cpu().item())
+            intersection = ((pred_inds[target_inds]).long().sum().data.cpu().item())  # Cast to long to prevent overflows
+            union = pred_inds.long().sum().data.cpu().item() + target_inds.long().sum().data.cpu().item() - intersection
+            if union == 0:
+                ious.append(float('nan'))  # If there is no ground truth, do not include in evaluation
+            else:
+                ious.append(float(intersection) / float(max(union, 1)))
+        return np.array(ious)
+
+    def jaccard_sim_score(self, input, target):
+
+        n = target.size(0)
+        unet_input = input.argmax(dim=1).view(n, -1).cpu().numpy().reshape(-1)
+        # print('Input jacc', unet_input.shape)
+        label = target.cpu().numpy().reshape(-1)
+        # print('Output jacc', label.shape)
+
+        return jsc(unet_input, label, average='micro')
+
+    def get_epoch_accuracies_per_classes(self, iou_acc):
+        return np.mean(iou_acc, axis=0)
 
     def train_net(self, net,
                   device,
@@ -41,8 +90,9 @@ class UNetTrain:
         class_weights = torch.FloatTensor(weights).to(device)
         criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-        train_history = {'loss': [], 'train_step': []}
-        validation_history = {'val_loss': [], 'val_epoch': []}
+        train_history = {'loss': [], 'train_step': [], 'train_dice': [], 'train_jacc_score': []}
+        validation_history = {'val_loss_epoch': [], 'val_dice_epoch': [], 'val_dice_batch': [],
+                              'val_loss_batch': [], 'val_jacc_epoch': []}
 
         # Train the model
         total_step = len(self.train_loader)
@@ -50,6 +100,8 @@ class UNetTrain:
             print('Starting epoch {}/{}.'.format(epoch + 1, self.epochs))
             net.train()
             epoch_loss = 0
+            dice_score = 0
+            jaccard_score = []
             for i, batch in enumerate(self.train_loader):
                 start = time.time()
                 input, label = batch
@@ -60,7 +112,10 @@ class UNetTrain:
                 # Forward pass
                 outputs = net(images)
                 loss = criterion(outputs, labels)
-
+                dice_score += self.dice_score(outputs, labels)
+                iou_accuracies = self.iou(outputs, labels)
+                jaccard_score.append(iou_accuracies)
+                print(iou_accuracies)
                 # Backward and optimize
                 epoch_loss += loss.item()
                 optimizer.zero_grad()
@@ -69,12 +124,15 @@ class UNetTrain:
 
                 end = time.time()
                 print('Time taken for the batch is {}'.format(end - start))
-                if i % 100 == 0:
+                if i % 2 == 0:
                     train_history['loss'].append(loss.item())
+                    train_history['train_jacc_score'].append(iou_accuracies)
                     train_history['train_step'].append(i + epoch * total_step)
+                    train_history['train_dice'].append(dice_score)
 
-                    print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}'
-                          .format(epoch + 1, self.epochs, i + 1, total_step, loss.item()))
+                    print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Dice: {}, Jaccard: {}'
+                          .format(epoch + 1, self.epochs, i + 1, total_step, loss.item(), dice_score,
+                                  iou_accuracies))
 
             if save_cp:
                 torch.save(net.state_dict(), model_checkpoints + 'CP{}.pth'.format(epoch + 1))
@@ -84,7 +142,8 @@ class UNetTrain:
                 # eval
                 net.eval()
                 val_losses = []
-
+                val_dice_score = []
+                val_jacc_score = []
                 for k, val_batch in tqdm(enumerate(self.validation_loader)):
                     val_start = time.time()
                     validation_input, validation_label = val_batch
@@ -96,15 +155,33 @@ class UNetTrain:
 
                     # Calculate loss
                     val_loss = criterion(masks_pred, validation_targets).item()
+                    val_dice_score.append(self.dice_score(masks_pred, validation_targets))
+                    val_jacc_score.append(self.iou(masks_pred, validation_targets))
                     val_losses.append(val_loss)
 
-                    validation_history['val_loss'].append(np.mean(val_losses))
-                    validation_history['val_epoch'].append(epoch + 1)
+                    validation_history['val_loss_batch'].append(val_loss)
+                    validation_history['val_dice_batch'].append(val_dice_score)
 
                     val_end = time.time()
                     print('Time taken for the batch is {}'.format(val_end - val_start))
-                print('Validation Loss: {}, Validation Epoch: {}'.format(np.mean(val_losses), epoch + 1))
+                validation_history['val_loss_epoch'].append(np.mean(val_losses))
+                validation_history['val_dice_epoch'].append(np.mean(val_dice_score))
+                validation_history['val_jacc_epoch'].append(self.get_epoch_accuracies_per_classes(val_jacc_score))
+                print('Validation Loss: {}, Validation Dice: {}, Validation Epoch: {}, Validation Jaccard'
+                      .format(np.mean(val_losses), np.mean(val_dice_score), epoch + 1,
+                              self.get_epoch_accuracies_per_classes(val_jacc_score)))
 
             net.train()
-
-            print('Epoch finished ! Loss: {}'.format(np.mean(epoch_loss)))
+            print('Epoch finished ! Loss: {}'.format(epoch_loss / total_step))
+            print(train_history)
+            print(validation_history)
+            print('Epoch: {}, Train Loss: {}, Train Dice: {}, Train Jaccard: {}, Validation Loss: '
+                  '{}, Validation Dice: {}, Validation Jaccard: {} '.format(epoch + 1,
+                                                                            epoch_loss / total_step,
+                                                                            dice_score/ total_step,
+                                                                            self.get_epoch_accuracies_per_classes(
+                                                                                jaccard_score),
+                                                                            validation_history['val_loss_epoch'][epoch],
+                                                                            validation_history['val_dice_epoch'][epoch],
+                                                                            validation_history['val_jacc_epoch'][
+                                                                                epoch]))
