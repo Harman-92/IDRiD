@@ -13,6 +13,7 @@ class DoubleConv2D(nn.Module):
         super(DoubleConv2D, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1, bias=False)
         self.batch_norm1 = nn.BatchNorm2d(out_channels, eps=1e-4)
+
         self.relu1 = nn.ReLU(inplace=True)
 
         self.conv2 = nn.Conv2d(in_channels=out_channels, out_channels=out_channels, kernel_size=3, padding=1,
@@ -24,7 +25,6 @@ class DoubleConv2D(nn.Module):
         x = self.relu1(self.batch_norm1(self.conv1(x)))
         x = self.relu2(self.batch_norm2(self.conv2(x)))
         return x
-
 
 def up_conv(in_channels, out_channels):
     return nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1)
@@ -83,6 +83,7 @@ class UNetSync(nn.Module):
 
         # Down layer 5 (customized center for the UNet)
         x = self.down_encode_conv_layer5(x)
+        x = F.dropout(x, 0.4)
         # Up layer 1
         x = F.upsample(x, scale_factor=2, mode='bilinear', align_corners=True)
         # This will get the dimensions equal to the skip connection feature map dimensions
@@ -110,4 +111,5 @@ class UNetSync(nn.Module):
 
         # Final layer
         x = self.final_layer(x)
-        return x  # Remove the channel dimension as we only have a single channel on the output
+
+        return x # Remove the channel dimension as we only have a single channel on the output
