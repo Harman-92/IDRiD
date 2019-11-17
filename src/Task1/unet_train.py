@@ -4,7 +4,7 @@ import torch.nn as nn
 import time
 import numpy as np
 
-torch.set_default_tensor_type('torch.FloatTensor')
+# torch.set_default_tensor_type('torch.FloatTensor')
 
 
 class UNetTrain:
@@ -36,7 +36,7 @@ class UNetTrain:
 
         learning_rate = self.lr
         optimizer = opt.Adam(net.parameters(), lr=learning_rate)
-        criterion = nn.BCEWithLogitsLoss()
+        criterion = nn.CrossEntropyLoss()
 
         train_history = {'loss': [], 'train_step': []}
         validation_history = {'val_loss': [], 'val_step': []}
@@ -54,7 +54,7 @@ class UNetTrain:
                 input, label = batch
                 # TO-DO: Make sure the images and labels are getting the right comparison data
                 images = input.type(torch.FloatTensor).to(device).permute(0, 3, 1, 2)
-                labels = label.type(torch.FloatTensor).to(device).view(len(label), -1)
+                labels = label.type(torch.LongTensor).to(device)
                 print(images.size())
                 print(labels.size())
                 del batch

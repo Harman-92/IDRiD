@@ -39,9 +39,10 @@ class UNetSync(nn.Module):
     UNet Customized Architecture
     """
 
-    def __init__(self, in_channels):
+    def __init__(self, in_channels, num_of_classes):
         super().__init__()
         self.in_channels = in_channels
+        self.num_of_classes = num_of_classes
 
         # Given an image size of the dim [512 * 512]
         self.down_encode_conv_layer1 = DoubleConv2D(self.in_channels, 64)  # Out Image size [512] 2d
@@ -61,7 +62,7 @@ class UNetSync(nn.Module):
         self.up_conv_layer4 = up_conv(128, 64)
         self.up_decode_conv_layer4 = DoubleConv2D(128, 64)  # Out Image size [512] 2d
 
-        self.final_layer = out_conv(64, 1)
+        self.final_layer = out_conv(64, self.num_of_classes)
 
     def forward(self, x):
         # Down Layer 1
@@ -82,7 +83,6 @@ class UNetSync(nn.Module):
 
         # Down layer 5 (customized center for the UNet)
         x = self.down_encode_conv_layer5(x)
-
         # Up layer 1
         x = F.upsample(x, scale_factor=2, mode='bilinear', align_corners=True)
         # This will get the dimensions equal to the skip connection feature map dimensions
@@ -110,6 +110,4 @@ class UNetSync(nn.Module):
 
         # Final layer
         x = self.final_layer(x)
-
-        x = torch.squeeze(x, dim=1)
-        return x.view(x.size(0), -1)  # Remove the channel dimension as we only have a single channel on the output
+        return x  # Remove the channel dimension as we only have a single channel on the output
