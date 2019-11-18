@@ -93,7 +93,6 @@ def weights_init(m):
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
 
-
 unet_model = UNet(3, num_of_classes).to(device)
 unet_model.apply(weights_init)
 train = UNetTrain(len(train_dataset), train_dataloader, len(validation_dataset), validation_dataloader)
