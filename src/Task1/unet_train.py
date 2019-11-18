@@ -4,6 +4,7 @@ import torch.nn as nn
 import time
 import numpy as np
 from tqdm import tqdm
+import torch.nn.functional as F
 from sklearn.metrics import jaccard_score as jsc
 
 
@@ -21,21 +22,26 @@ class UNetTrain:
         self.lr = lr
         self.epochs = epochs
 
-    def dice_score(self, input, target):
-        # To avoid zero in the numerator
-        smooth = 1
-
-        n = target.size(0)
-        input = input.argmax(dim=1).view(n, -1)
-        # print('Input dice', input.size())
-        target = target.view(n, -1)
-        # print('Target dice', target.size())
-
-        # Compute dice
-        intersect = (input * target).sum()
-        union = input.sum() + target.sum()
-
-        return 1 - ((2. * intersect + smooth) / (union + smooth))
+    def dice_loss(self, true, logits, eps=1e-7):
+        """Computes the Sørensen–Dice loss.
+        Args:
+            true: a tensor of shape [B, 1, H, W].
+            logits: a tensor of shape [B, C, H, W]. Corresponds to
+                the raw output or logits of the model.
+            eps: added to the denominator for numerical stability.
+        Returns:
+            dice_loss_v1: the Sørensen–Dice loss.
+        """
+        num_classes = logits.shape[1]
+        true_1_hot = torch.eye(num_classes)[true.squeeze(1)]
+        true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
+        probas = F.softmax(logits, dim=1)
+        true_1_hot = true_1_hot.type(logits.type())
+        dims = (0,) + tuple(range(2, true.ndimension()))
+        intersection = torch.sum(probas * true_1_hot, dims)
+        cardinality = torch.sum(probas + true_1_hot, dims)
+        dice_loss = (2. * intersection / (cardinality + eps)).mean()
+        return (1 - dice_loss)
 
     def iou(self, pred, target):
         ious = []
@@ -87,13 +93,11 @@ class UNetTrain:
                        self.validation_length, str(save_cp), str(device)))
 
         optimizer = opt.Adam(net.parameters(), lr=self.lr)
-        weights = [1 / 60, 1.0, 1.0, 1.0, 2.0]
-        class_weights = torch.FloatTensor(weights).to(device)
-        criterion = nn.CrossEntropyLoss(weight=class_weights)
-
-        train_history = {'loss': [], 'train_step': [], 'train_dice': [], 'train_jacc_score': []}
-        validation_history = {'val_loss_epoch': [], 'val_dice_epoch': [], 'val_dice_batch': [],
-                              'val_loss_batch': [], 'val_jacc_epoch': []}
+        # weights = [1 / 60, 1.0, 1.0, 1.0, 2.0]
+        # class_weights = torch.FloatTensor(weights).to(device)
+        criterion = self.dice_loss
+        train_history = {'loss': [], 'train_step': [], 'train_jacc_score': []}
+        validation_history = {'val_loss_epoch': [], 'val_loss_batch': [], 'val_jacc_epoch': []}
 
         # Train the model
         total_step = len(self.train_loader)
@@ -101,19 +105,16 @@ class UNetTrain:
             print('Starting epoch {}/{}.'.format(epoch + 1, self.epochs))
             net.train()
             epoch_loss = 0
-            dice_score = 0
             jaccard_score = []
             for i, batch in enumerate(self.train_loader):
                 start = time.time()
                 input, label = batch
                 images = input.type(torch.FloatTensor).to(device).permute(0, 3, 1, 2)
-                labels = label.type(torch.LongTensor).to(device)
+                labels = label.type(torch.LongTensor).unsqueeze(1).to(device)
                 del batch
 
-                # Forward pass
                 outputs = net(images)
-                loss = criterion(outputs, labels)
-                dice_score += self.dice_score(outputs, labels)
+                loss = criterion(labels, outputs)
                 iou_accuracies = self.iou(outputs, labels)
                 jaccard_score.append(iou_accuracies)
                 print(iou_accuracies)
@@ -125,14 +126,13 @@ class UNetTrain:
 
                 end = time.time()
                 print('Time taken for the batch is {}'.format(end - start))
-                if i % 2 == 0:
+                if (i + 1) % 2 == 0:
                     train_history['loss'].append(loss.item())
                     train_history['train_jacc_score'].append(iou_accuracies)
                     train_history['train_step'].append(i + epoch * total_step)
-                    train_history['train_dice'].append(dice_score)
 
-                    print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Dice: {}, Jaccard: {}'
-                          .format(epoch + 1, self.epochs, i + 1, total_step, loss.item(), dice_score,
+                    print('Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}, Jaccard: {}'
+                          .format(epoch + 1, self.epochs, i + 1, total_step, loss.item(),
                                   iou_accuracies))
 
             if save_cp:
@@ -149,40 +149,34 @@ class UNetTrain:
                     val_start = time.time()
                     validation_input, validation_label = val_batch
                     validation_images = validation_input.type(torch.FloatTensor).to(device).permute(0, 3, 1, 2)
-                    validation_targets = validation_label.type(torch.LongTensor).to(device)
-
+                    validation_targets = validation_label.type(torch.LongTensor).unsqueeze(1).to(device)
                     # Predict
                     masks_pred = net(validation_images)
 
                     # Calculate loss
-                    val_loss = criterion(masks_pred, validation_targets).item()
-                    val_dice_score.append(self.dice_score(masks_pred, validation_targets))
+                    val_loss = criterion(validation_targets, masks_pred).item()
                     val_jacc_score.append(self.iou(masks_pred, validation_targets))
                     val_losses.append(val_loss)
 
                     validation_history['val_loss_batch'].append(val_loss)
-                    validation_history['val_dice_batch'].append(val_dice_score)
 
                     val_end = time.time()
                     print('Time taken for the batch is {}'.format(val_end - val_start))
                 validation_history['val_loss_epoch'].append(np.mean(val_losses))
-                validation_history['val_dice_epoch'].append(np.mean(val_dice_score))
                 validation_history['val_jacc_epoch'].append(self.get_epoch_accuracies_per_classes(val_jacc_score))
-                print('Validation Loss: {}, Validation Dice: {}, Validation Epoch: {}, Validation Jaccard: {}'
-                      .format(np.mean(val_losses), np.mean(val_dice_score), epoch + 1,
+                print('Validation Loss: {}, Validation Epoch: {}, Validation Jaccard: {}'
+                      .format(np.mean(val_losses), epoch + 1,
                               self.get_epoch_accuracies_per_classes(val_jacc_score)))
 
             net.train()
             print('Epoch finished ! Loss: {}'.format(epoch_loss / total_step))
             print(train_history)
             print(validation_history)
-            print('Epoch: {}, Train Loss: {}, Train Dice: {}, Train Jaccard: {}, Validation Loss: '
-                  '{}, Validation Dice: {}, Validation Jaccard: {} '.format(epoch + 1,
-                                                                            epoch_loss / total_step,
-                                                                            dice_score / total_step,
-                                                                            self.get_epoch_accuracies_per_classes(
-                                                                                jaccard_score),
-                                                                            validation_history['val_loss_epoch'][epoch],
-                                                                            validation_history['val_dice_epoch'][epoch],
-                                                                            validation_history['val_jacc_epoch'][
-                                                                                epoch]))
+            print('Epoch: {}, Train Loss: {}, Train Jaccard: {}, Validation Loss: '
+                  '{}, Validation Jaccard: {} '.format(epoch + 1,
+                                                       epoch_loss / total_step,
+                                                       self.get_epoch_accuracies_per_classes(
+                                                           jaccard_score),
+                                                       validation_history['val_loss_epoch'][epoch],
+                                                       validation_history['val_jacc_epoch'][
+                                                           epoch]))
