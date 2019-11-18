@@ -106,7 +106,7 @@ class UNetTrain:
         # weights = [1 / 60, 1.0, 1.0, 1.0, 2.0]
         # class_weights = torch.FloatTensor(weights).to(device)
         criterion = self.dice_loss
-        train_history = {'loss': [], 'train_step': [], 'train_dice': [], 'train_jacc_score': []}
+        train_history = {'loss': [], 'train_step': [], 'train_jacc_score': []}
         validation_history = {'val_loss_epoch': [], 'val_loss_batch': [], 'val_jacc_epoch': []}
 
         # Train the model
@@ -120,7 +120,7 @@ class UNetTrain:
                 start = time.time()
                 input, label = batch
                 images = input.type(torch.FloatTensor).to(device).permute(0, 3, 1, 2)
-                labels = label.type(torch.LongTensor).to(device)
+                labels = label.type(torch.LongTensor).unsqueeze(1).to(device)
                 del batch
 
                 outputs = net(images)
@@ -159,8 +159,7 @@ class UNetTrain:
                     val_start = time.time()
                     validation_input, validation_label = val_batch
                     validation_images = validation_input.type(torch.FloatTensor).to(device).permute(0, 3, 1, 2)
-                    validation_targets = validation_label.type(torch.LongTensor).to(device)
-
+                    validation_targets = validation_label.type(torch.LongTensor).unsqueeze(1).to(device)
                     # Predict
                     masks_pred = net(validation_images)
 
