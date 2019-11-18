@@ -1,4 +1,6 @@
 import cv2
+import utils
+import os
 
 def reduce_resolution(image, size):
     dim = (size, size)
@@ -36,3 +38,18 @@ def enhance(image, clip_limit=3):
     # convert image from LAB color model back to BGR color model
     final_image = cv2.cvtColor(merged_channels, cv2.COLOR_LAB2BGR)
     return final_image
+
+
+image = cv2.imread(os.path.join(utils.get_train_dir(), "images", "IDRiD_02.tif"))
+print(type(image.shape))
+# path=os.path.join()
+# images = utils.read_images_from_folder(args.model_category, args.directory, args.image_format)
+# print(len(images))
+
+image = scaleradius(image, 300)
+image = normalization(image)
+print(image.shape)
+image = enhance(image)
+cv2.imshow('image', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
