@@ -32,6 +32,7 @@ class UNetTrain:
         Returns:
             dice_loss_v1: the Sørensen–Dice loss.
         """
+        num_classes = logits.shape[1]
         true_1_hot = torch.eye(num_classes)[true.squeeze(1)]
         true_1_hot = true_1_hot.permute(0, 3, 1, 2).float()
         probas = F.softmax(logits, dim=1)
