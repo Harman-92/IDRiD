@@ -12,21 +12,21 @@ NUM_LAYERS = 3
 
 parameters = {
     "0": {
-        "b": 0.05,
+        "b": 0.03,
         "c": 0.04,
         "h_min": 30,
         "h_max": 70,
         "mode": 0
     },
     "1": {
-        "b": 0.05,
+        "b": 0.03,
         "c": 0.04,
-        "h_min": 30,
-        "h_max": 70,
+        "h_min": 50,
+        "h_max": 100,
         "mode": 1
     },
     "2": {
-        "b": 0.05,
+        "b": 0.03,
         "c": 0.04,
         "h_min": 30,
         "h_max": 70,
@@ -103,40 +103,95 @@ def resize_image(input, reference):
     return output
 
 
+def gaussian_pyramid(image, mask, num):
+    train_pyramid = [image]
+    mask_pyramid = [mask]
+    for i in range(num):
+        rows, cols = train_pyramid[i].shape
+        train_pyramid.append(cv2.pyrDown(train_pyramid[i], dstsize=(cols // 2, rows // 2)))
+        # mask_pyramid.append(cv2.pyrDown(mask_pyramid[i], dstsize=(cols // 2, rows // 2)))
+        # TODO fix this so mask doesn't interpolate
+        mask_pyramid.append(cv2.resize(mask_pyramid[i], (cols // 2, rows // 2)))
+    return train_pyramid, mask_pyramid
+
 def apply_morphological_postprocessing(input, mode):
     output = input
     kernel = np.ones((5, 5), np.uint8)
     kernel2 = np.ones((3, 3), np.uint8)
+    kernel3 = np.ones((2, 2), np.uint8)
+
     if mode == 0:
-        #output = cv2.erode(input, kernel2, iterations=1)
+        #output = cv2.erode(input, kernel3, iterations=1)
+        output = cv2.morphologyEx(output, cv2.MORPH_CLOSE, kernel)
+        #output = cv2.morphologyEx(output, cv2.MORPH_OPEN, kernel)
+    elif mode == 1:
+        #output = cv2.erode(output, kernel2, iterations=1)
         output = cv2.morphologyEx(output, cv2.MORPH_CLOSE, kernel2)
+    elif mode == 2:
+        output = cv2.erode(output, kernel2, iterations=1)
+        output = cv2.morphologyEx(output, cv2.MORPH_CLOSE, kernel)
+
     else:
-        output = cv2.erode(input, kernel2, iterations=1)
-        output = cv2.morphologyEx(output, cv2.MORPH_CLOSE, kernel2)
+        output = cv2.morphologyEx(output, cv2.MORPH_CLOSE, kernel3)
     return output
+
+
+def get_metrics(pred, gt):
+    tp = 0
+    tn = 0
+    fp = 0
+    fn = 0
+
+    if pred.shape == gt.shape:
+        h, w = layer.shape
+        for y in range(h):
+            for x in range(w):
+                if pred[y][x] == gt[y][x]:
+                    if pred[y][x] == 255:
+                        tp += 1
+                    else:
+                        tn += 1
+                else:
+                    if pred[y][x] == 255:
+                        fp += 1
+                    else:
+                        fn += 1
+    else:
+        print('Size does not match')
+
+    accuracy = ((tp + tn) / (tp + tn + fp + fn)) * 100
+    sensitivity = (tp / (tp + fn)) * 100
+    specificity = (tn / (tn + fp)) * 100
+
+    print(f"True Positive: {tp}")
+    print(f"True Negative: {tn}")
+    print(f"False Positive: {fp}")
+    print(f"False Negative: {fn}")
+    print(f"Accuracy: {accuracy}%")
+    print(f"Sensitivity: {sensitivity}%")
+    print(f"Specificity: {specificity}%")
+
+    return tp, tn, fp, fn, accuracy, sensitivity, specificity
+
+
 
 
     # opening = cv2.morphologyEx(erosion, cv2.MORPH_OPEN, kernel)
 
 
-image_name = "21_training"
+image_name = "21"
 
-train_src = cv2.imread('../../resources/Task2/Training/original_retinal_images/' + image_name + '.tif', cv2.IMREAD_COLOR)
-train_mask = np.array(Image.open('../../resources/Task2/Training/background_masks/' + image_name + '_mask.gif'))
+train_src = cv2.imread('../../resources/Task2/Training/original_retinal_images/' + image_name + '_training.tif', cv2.IMREAD_COLOR)
+train_mask = np.array(Image.open('../../resources/Task2/Training/background_masks/' + image_name + '_training_mask.gif'))
+
+ground_truth = np.array(Image.open('../../resources/Task2/Training/blood_vessel_segmentation_masks/' + image_name + '_manual1.gif'))
+
 
 # extract only green from image
 train_green = train_src[:, :, 1]
 
 # create Gaussian pyramid for function input
-train_pyramid = [train_green]
-mask_pyramid = [train_mask]
-
-for i in range(NUM_LAYERS):
-    rows, cols = train_pyramid[i].shape
-    train_pyramid.append(cv2.pyrDown(train_pyramid[i], dstsize=(cols // 2, rows // 2)))
-    # mask_pyramid.append(cv2.pyrDown(mask_pyramid[i], dstsize=(cols // 2, rows // 2)))
-    #TODO fix this so mask doesn't interpolate
-    mask_pyramid.append(cv2.resize(mask_pyramid[i], (cols // 2, rows // 2)))
+train_pyramid, mask_pyramid = gaussian_pyramid(train_green, train_mask, NUM_LAYERS)
 
 fig = plt.figure()
 fig.suptitle("Layers")
@@ -158,29 +213,23 @@ for i in range(NUM_LAYERS):
     # resize pyramid layers to original image size
     layer_out = resize_image(layer_out, train_green)
 
-    # apply hysteresis thresholding
-    layer_thresh = hysteresis_thresholding(layer_out, parameters[str(i)]["h_min"], parameters[str(i)]["h_max"], 255)
+    layer_thresh = apply_morphological_postprocessing(layer_out, parameters[str(i)]["mode"])
 
-    #ret, thresh = cv2.threshold(layer_out, 217, 255, cv2.THRESH_BINARY)
+    # apply hysteresis thresholding
+    layer_thresh = hysteresis_thresholding(layer_thresh, parameters[str(i)]["h_min"], parameters[str(i)]["h_max"], 255)
 
     # apply masking
     layer_thresh = get_masked_output(layer_thresh, train_mask)
 
-    layer_thresh = apply_morphological_postprocessing(layer_thresh, parameters[str(i)]["mode"])
-
-
-    # thresh = cv2.bitwise_and(src1=thresh.astype(np.float32), src2=train_mask.astype(np.float32))
-    # layer_thresh = cv2.bitwise_and(src1=layer_thresh.astype(np.float32), src2=train_mask.astype(np.float32))
-
     fig.add_subplot(2, 3, i+1)
     plt.imshow(layer_out, cmap='gray')
     plt.axis('off')
-    plt.title('No thresh')
+    plt.title('Hessian analysis')
 
     fig.add_subplot(2, 3, i+4)
     plt.imshow(layer_thresh, cmap='gray')
     plt.axis('off')
-    plt.title('Thresh')
+    plt.title('Post proc.')
 
     print('Completed Layer %s' % i)
     out_pyramid.append(layer_thresh)
@@ -188,12 +237,17 @@ for i in range(NUM_LAYERS):
 plt.show()
 
 train_out = np.zeros(train_green.shape, dtype=np.float32)
-# iterate through each image in out_pyramid
+
+# combine all images to create final image
 for i in range(NUM_LAYERS):
     layer = out_pyramid[i]
-
-    # combine all images to create final image
     train_out = cv2.bitwise_or(src1=train_out, src2=layer)
+
 cv2.imshow('Output', train_out)
+train_out = apply_morphological_postprocessing(train_out, 3)
+cv2.imshow('Morph Output', train_out)
+print (train_out.shape)
+print(ground_truth.shape)
+get_metrics(train_out, ground_truth)
 
 cv2.waitKey(0)
