@@ -162,8 +162,17 @@ ground_truth = np.array(Image.open('../../resources/Task2/Training/blood_vessel_
 # extract only green from image
 train_green = train_src[:, :, 1]
 
+# Pre processing
+
+# perform histogram stretching
+layer_pre = exposure.equalize_hist(train_green, mask=train_mask).astype(np.float32)
+
+# perform bilateral filter
+layer_pre = cv2.bilateralFilter(layer_pre, 4, 150, 150)
+
+
 # create Gaussian pyramid for function input
-train_pyramid, mask_pyramid = gaussian_pyramid(train_green, train_mask, NUM_LAYERS)
+train_pyramid, mask_pyramid = gaussian_pyramid(layer_pre, train_mask, NUM_LAYERS)
 
 fig = plt.figure()
 fig.suptitle("Layers")
@@ -172,12 +181,6 @@ out_pyramid = []
 for i in range(NUM_LAYERS):
     layer = train_pyramid[i].astype(np.float32)
     mask = mask_pyramid[i]
-
-    # perform histogram stretching
-    layer = exposure.equalize_hist(layer, mask=mask).astype(np.float32)
-
-    # perform bilateral filter
-    layer = cv2.bilateralFilter(layer, 4, 150, 150)
 
     # perform hessian analysis
     layer_out = hessian_analysis(layer)
