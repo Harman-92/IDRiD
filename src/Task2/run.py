@@ -6,33 +6,10 @@ import imageio
 from PIL import Image
 from math import pow, sqrt, exp
 import matplotlib.pyplot as plt
+import json
 
-NUM_LAYERS = 3
-
-
-parameters = {
-    "0": {
-        "b": 0.03,
-        "c": 0.04,
-        "h_min": 30,
-        "h_max": 70,
-        "mode": 0
-    },
-    "1": {
-        "b": 0.03,
-        "c": 0.04,
-        "h_min": 50,
-        "h_max": 100,
-        "mode": 1
-    },
-    "2": {
-        "b": 0.03,
-        "c": 0.04,
-        "h_min": 30,
-        "h_max": 70,
-        "mode": 2
-    }
-}
+PARAMETERS = json.load(open('parameters.json'))
+NUM_LAYERS = len(PARAMETERS)
 
 
 def hysteresis_thresholding(layer, h_min, h_max, value):
@@ -86,8 +63,8 @@ def hessian_analysis(layer):
                 e_max = max(eigens)
                 Rb = e_min / e_max
                 S = sqrt(pow(e_min, 2) + pow(e_max, 2))
-                b = parameters[str(i)]["b"]
-                c = parameters[str(i)]["c"]
+                b = PARAMETERS[str(i)]["b"]
+                c = PARAMETERS[str(i)]["c"]
                 # Vesselness feature
                 v_feature = exp(-1 * (pow(Rb, 2) / (2 * pow(b, 2)))) * (1 - exp(-1 * (pow(S, 2) / (2 * pow(c, 2)))))
                 # layer_out[y,x] = (1 - min(eigens) / max(eigens)) * 255
@@ -113,6 +90,7 @@ def gaussian_pyramid(image, mask, num):
         # TODO fix this so mask doesn't interpolate
         mask_pyramid.append(cv2.resize(mask_pyramid[i], (cols // 2, rows // 2)))
     return train_pyramid, mask_pyramid
+
 
 def apply_morphological_postprocessing(input, mode):
     output = input
@@ -173,19 +151,13 @@ def get_metrics(pred, gt):
 
     return tp, tn, fp, fn, accuracy, sensitivity, specificity
 
-
-
-
     # opening = cv2.morphologyEx(erosion, cv2.MORPH_OPEN, kernel)
-
 
 image_name = "21"
 
 train_src = cv2.imread('../../resources/Task2/Training/original_retinal_images/' + image_name + '_training.tif', cv2.IMREAD_COLOR)
 train_mask = np.array(Image.open('../../resources/Task2/Training/background_masks/' + image_name + '_training_mask.gif'))
-
 ground_truth = np.array(Image.open('../../resources/Task2/Training/blood_vessel_segmentation_masks/' + image_name + '_manual1.gif'))
-
 
 # extract only green from image
 train_green = train_src[:, :, 1]
@@ -213,10 +185,10 @@ for i in range(NUM_LAYERS):
     # resize pyramid layers to original image size
     layer_out = resize_image(layer_out, train_green)
 
-    layer_thresh = apply_morphological_postprocessing(layer_out, parameters[str(i)]["mode"])
+    layer_thresh = apply_morphological_postprocessing(layer_out, PARAMETERS[str(i)]["mode"])
 
     # apply hysteresis thresholding
-    layer_thresh = hysteresis_thresholding(layer_thresh, parameters[str(i)]["h_min"], parameters[str(i)]["h_max"], 255)
+    layer_thresh = hysteresis_thresholding(layer_thresh, PARAMETERS[str(i)]["h_min"], PARAMETERS[str(i)]["h_max"], 255)
 
     # apply masking
     layer_thresh = get_masked_output(layer_thresh, train_mask)
