@@ -13,5 +13,4 @@ The directory representation is as follows:
               -> Task2
                    -> Test
                    -> Training
-
-
+                   
