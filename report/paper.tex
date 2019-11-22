@@ -28,7 +28,7 @@
 
 \begin{document}
 
-\title{Computer Vision (COMP9517) Assignment}
+\title{Automation of Diabetic Lesions and blood vessels using Unet and Gaussian Pyramids}
 
 
 % make the title area
@@ -277,15 +277,6 @@ In this paper, the problem of summarizing UNet Deep Learning model which is used
 \par 
 The proposed work can be enhanced by expanding its scope to using Transfer Learning with pre trained models like Resnet 50, Resnet 101 or Inception v3. Hyper parameter Tuning the weights for the data imbalance will also improve the Pixel wise Cross Entropy Loss Function and finally we can use different type of Segmentation models like Residual nets, FCN etc.,
 
-\subsection{Contribution of Group Members}
-\par
-
-\begin{itemize}
-		\item \textbf{Shashank Reddy Boosi}  - Modelling, Metrics and Results
-		\item \textbf{Harmanpreet Singh}  - Data Augmentation , Training  and Merging
-		\item \textbf{Allen Kombasseril}  - Preprocessing and enhancement
-\end{itemize} 
-
 
 \section{Task 2}
 
@@ -446,14 +437,6 @@ A multiresolution method was implemented for segmenting blood vessels in fundus 
 Accuracy gains with the method because lower resolution images could capture thick vessels better. The computational demands were reduced as a 3x3 window could be effectively used with resolution hierarchy.
 \par
 Future works involves reducing false positives by doing Specular Reflex Correction to account for bright specular reflex caused by camera flash in some fundus photographs. Tweaking the kernel for morphological post processing can further reduce noise.
-
-\subsection{Contribution of Group Members}
-\par
-
-\begin{itemize}
-		\item \textbf{David Sison}  - Image preprocessing, Gaussian Resolution Hierarchy, Hessian analysis, Metrics
-		\item \textbf{Aravind Murugesan}  - Hysteresis thresholding, Vesselness feature implementation, Post processing, Metrics
-\end{itemize} 
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
