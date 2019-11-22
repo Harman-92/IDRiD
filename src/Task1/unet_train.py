@@ -1,11 +1,9 @@
 import torch
 import torch.optim as opt
-import torch.nn as nn
 import time
 import numpy as np
 from tqdm import tqdm
 import torch.nn.functional as F
-from sklearn.metrics import jaccard_score as jsc
 from metrics import eval_metrics
 
 

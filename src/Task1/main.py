@@ -12,32 +12,6 @@ from unet_custom import UNetSync as UNet
 
 warnings.filterwarnings("ignore")
 
-
-def get_command_line_args():
-    parser = argparse.ArgumentParser(description='Get info about the task',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--model_category', '-m', default='Train',
-                        help="Specify the model category like train / test")
-    parser.add_argument('--directory', '-dir', metavar='INPUT',
-                        help='Directory name of images', required=False)
-    # parser.add_argument('--image_format', '-imf', metavar='INPUT',
-    # help='Image formatting type', required=True, default="jpg")
-    parser.add_argument('--learning_rate', '-lr', type=float,
-                        help="Learning rate of the model",
-                        default=0.001)
-    parser.add_argument('--batch_size', '-b', type=int,
-                        help="Batch size of the model",
-                        default=1)
-    parser.add_argument('--no_epochs', '-noe', type=int,
-                        help="No of epochs for the model",
-                        default=1)
-    parser.add_argument('--val_size', '-vs', type=int,
-                        help="Validation Size",
-                        default=0.2)
-
-    return parser.parse_args()
-
-
 #
 # # Main function code start
 # args = get_command_line_args()
@@ -57,9 +31,6 @@ def get_command_line_args():
 # utils.display_image(image)
 #
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#
-# torch.manual_seed(42)
-# print(utils.get_train_dir())
 
 # Global imports
 num_of_classes = 5
@@ -93,29 +64,8 @@ def weights_init(m):
         if m.bias is not None:
             torch.nn.init.zeros_(m.bias)
 
+
 unet_model = UNet(3, num_of_classes).to(device)
 unet_model.apply(weights_init)
 train = UNetTrain(len(train_dataset), train_dataloader, len(validation_dataset), validation_dataloader)
 train.train_net(net=unet_model, device=device, save_cp=True)
-
-# losses = []
-# val_losses = []
-#
-# for epoch in range(n_epochs):
-#     for x_batch, y_batch in train_loader:
-#         x_batch = x_batch.to(device)
-#         y_batch = y_batch.to(device)
-#
-#         loss = train_step(x_batch, y_batch)
-#         losses.append(loss)
-#
-#     with torch.no_grad():
-#         for x_val, y_val in val_loader:
-#             x_val = x_val.to(device)
-#             y_val = y_val.to(device)
-#
-#             model.eval()
-#
-#             yhat = model(x_val)
-#             val_loss = loss_fn(y_val, yhat)
-#             val_losses.append(val_loss.item())
