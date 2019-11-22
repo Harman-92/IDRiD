@@ -36,8 +36,14 @@
 % As a general rule, do not put math, special symbols or citations
 % in the abstract
 \begin{abstract}
- Monoclonal Gammopathy of Undetermined Significance (MGUS) occurs in up to 2\% of persons of the age 50 or older. Machine Learning methods are needed to learn the vital information embedded in the genetic samples, which in turn can be helpful to develop more robust and accurate models of clinical diagnostics. We use SEVEN methods with classification trees as one of our models. For each of the methods, we employed 10-fold cross validation to estimate the prediction error. Our results  produced are the comparison between the machine learning algorithms. 
- The results we achieved, proved to be better when certain preprocessing techniques were used for the specific application of an algorithm. The results varied when missing values are replaced with mode, mean, mean with class label etc. We considered removing the tuples where the missing values are found, with consequence of losing valuable data. The accuracy of 82.6\% is achieved by 	Support Vector Machines, followed by the K-Nearest Neighbor, Logistic Regression  .
+ \textbf{\textit{Task 1}} - Diabetic retinopathy, known as diabetic eye disease, is a medical condition which damages the retina due to diabetes mellitus. This report is an attempt to solve the problem where we use Deep Learning to segment the four categories of lesions in a retinal image. We present a network and training strategy that relies on the strong use of data augmentation to use the available annotated samples efficiently. The architecture consists of a contracting path to capture context and a symmetric expanding path that enables precise localization. The model used is a fine tuned U-Net which is an enhanced encoder-decoder CNN model and we attained Jaccard Similarity of 0.3093 and a Dice Similarity of 0.3838 respectively.
+
+
+\par
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0em}
+
+\textbf{\textit{Task 2}} - The segmentation of blood vessels can be used for various retinal imaging. We present a report of our study of a Resolution Hierarchy based method. The method reduces computational needs and could detect vessel of different thickness by using a Gaussian resolution hierarchy. The algorithm reported an accuracy of 87.5\% while taking less time to run. 
 
 \paragraph*{Keywords}
 Diabetic Retinopathy, Blood Vessels, UNet, Gaussian Pyramid.
@@ -58,60 +64,60 @@ Diabetic Retinopathy, Blood Vessels, UNet, Gaussian Pyramid.
 % creates the second title. It will be ignored for other modes.
 \IEEEpeerreviewmaketitle
 
+\section{Task 1}
 
-
-\section{Introduction}
-\par MM, Multiple myeloma is a malignant plasma component of white blood cells (plasma cells) in the bone marrow. MM is related with an overproduction of an abnormal protein known as monoclonal protein (M-protein). Though this protein itself is not harmful to most people, if too much of this protein accumulates it often causes characteristic osteolytic lesions, anemia, renal failure, and hypercalcemia. \cite{monoclonal8} In contrast, monoclonal gammopathy of unknown significance (MGUS) is an asymptomatic plasma cell dyscrasia that is present in more than 3\% of the general white population older than age 50 and has an average multiple myeloma progression risk of 1\% per year. \cite{monoclonal9} \par
-
-Traditional clinical practices rely on close surveillance as the tool for management of multiple myeloma precursor disease. Indeed, definition of MGUS has clearly evolved, and characterization of clinical subtypes and risk stratification models have led to better understanding of disease biology and probability of progression. Despite this, a number of inherent diagnostic challenges continue to plague physicians while managing their patients. Molecular tools used to better identify MGUS signature profiles provide answers to long-sought questions and dilemmas. Of course, more research effort is required in this area. Gaining molecular insight into multiple myeloma precursor disease may have a dramatic impact on clinical management in the future. As expected, several clinical investigations have already begun to study treatment options. \par
-
-Though there is no known particular cause for accumulating of M-protein, the study found out some risk factors that might increase risk of developing MGUS. They include
-
+\subsection{Introduction}
 \par
-Machine Learning techniques have now been used both to classify different kinds of cancers which are morphologically indistinguishable and to predict response to therapy. In this paper, we discuss the possible Machine Learning techniques to predict the risk of progression of MGUS which has caused death in many people. Empirical results suggested that 10-fold cross validation may provide better accuracy estimates than the more common leave one out cross validation. We evaluate and compare each model against a set of metrics, resulted through the analysis of data from the MGUS data-set. The features that are included in the data set are age, sex, hgb (haemoglobin) etc. The data-set is explained in the Section \ref{ssec:describe}. Through this analysis using machine learning, can help in diagnosis of a patient. This method efficiently finds out if the progression of MGUS is probable for a certain case.
-
-\section{Related Works}
+Diabetic retinopathy, a chronic, progressive eye disease, has turned out to be one of the most common causes of vision impairment and blindness especially for working ages in the world today\cite{1}. Retinal abnormal conditions are associated with lesions namely microaneurysms, haemorrhages, hard exudates and soft exudates. The diagnosis in the early stages of the disease is particularly important to receive proper treatment and reduce the chance of progression of the disease to advanced stages which can lead to permanent loss of vision in extreme cases\cite{2}. The presence of these lesions is highly correlated with DR, so detection of their presence is crucial. Retinopathy detection system is usually accomplished by involving a well-trained physician manually detecting vascular abnormalities and structural changes of retina in the retinal fundus images. These results are closely observed by expert readers but they often inconsistent as the method is manual in nature\cite{8}. So an automated method is necessary to identify these defects. 
 \par
-Patients with MGUS are at increased risk for progression to multiple myeloma or a related plasma-cell cancer. The risk of progression of MGUS to multiple myeloma or related disorders is about 1\% per year. \cite{monoclonal1,monoclonal2} In a comparison of patients with various monoclonal protein values, in which 0.5 g per deciliter or less was used as a reference value, it is found that the initial concentration of monoclonal protein was a statistically significant predictor of progression to multiple myeloma.
+Most of the problems of computer vision of recent times have been solved with great accuracy with the help of modern deep learning algorithms, Convolutional Neural Networks (CNN's) to name one. Here we are using a tweaked version of the Fully connected convolutional neural network named UNET, which was developed by Olaf Ronneberger et al\cite{unet}, which have shown impressive results for biomedical image segmentation problems with lower number of training images.
 
+
+Diabetic retinopathy, a chronic, progressive eye disease, has turned out to be one of the most common causes of vision impairment and blindness especially for working ages in the world today\cite{1}.Is is caused by several medical conditions such as prolonged diabetes and ageing. Retinal abnormal conditions are associated with lesions namely microaneurysms, haemorrhages, hard exudates and soft exudates. It is therefore important to identify these defects in a retinal image. The diagnosis in the early stages of the disease is particularly important to receive proper treatment and reduce the chance of progression of the disease to advanced stages which can lead to permanent loss of vision in extreme cases\cite{2}. The presence of these lesions is highly correlated with DR , so detection of their presence is crucial. Retinopathy detection system is usually accomplished by involving a well-trained physician manually detecting vascular abnormalities and structural changes of retina in the retinal fundus images. These results are closely observed by expert readers but they often inconsistent as the method is manual in nature\cite{8}. So an automated method is necessary to identify these defects. Earlier solutions of automated diabetic retinopathy detection system were based on hand-crafted feature extraction and standard machine learning algorithm for prediction\cite{3}. 
+\par
+Most of the problems of computer vision of recent times have been solved with great accuracy with the help of modern deep learning algorithms, Convolutional Neural Networks (CNNs) to name one. Here we are using a tweaked version of the Fully connected convolutional neural network named UNET, which was developed by Olaf \cite{unet}, which have shown impressive results for Bio medical image semantic segmentation problems with lower number of training images.
+
+\subsection{Related Works}
 \par
 
-The etiology of MGUS remains unclear and it is a current topic of investigation. Race seems to play a role given the observation that prevalence of MGUS is 2 to 3-fold higher in African-Americans and blacks from Africa compared with whites. \cite{monoclonal6, monoclonal7} Other identified risk factors for MGUS include older age, male sex, exposure to pesticides, and family history of MGUS or MM \cite{monoclonal9,monoclonal10,monoclonal11}. Thus, previous studies support a role for both genetic and environmental factors in the development of multiple myeloma and its precursor states. \cite{monoclonal12}
-
+Automatic diabetic retinopathy detection system can be achieved by various different algorithms and methods. C.Sinthanayothin used Recursive region growing segmentation algorithms along with the use of a new technique , named as Moat Operator to detect defects such as haemorrhages, microaneurysms and hard exudates. they could end up with a sensitivity and specificity for exudate detection of 88.5\% and 99.7\% respectively . They could detect microaneurysms, haemorrhages with a sensitivity and specificity of 88.7\% and 77.5\% respectively. 
 \par
 
-A significant increase of the monoclonal protein or development of myeloma, macroglobulinemia or amyloidosis occurred in 18 \% of the patients with monoclonal immunoglobulin G (IgG), in 28\% with immunoglobulin A (IgA) and in 25\% with immunoglobulin M (IgM). \cite{monoclonal2} Two independent studies have demonstrated that most cases of multiple myeloma are preceded by MGUS. Among 71 patients who during a 10-year follow-up time developed multiple myeloma, serum samples consistently demonstrated MGUS in the years before the malignant diagnosis. \cite{monoclonal13} Another study, based on the Department of Defense Serum Repository, showed a very similar finding. \cite{monoclonal14}
-
+Deep learning methods are proven to show good results in image segmentation tasks. Sheikh Muhammad Saiful Islam used Deep learning methods along with data preprocessing and data augmentation for Early Detection and Grading of Diabetic Retinopathy\cite{8}. So, in this work, they have presented a 4 x 4 kernel based CNN network with several preprocessing and augmentation methods to improve the performance of the architecture. their network achieved 98\% sensitivity and more than 94\% specificity in early-stage detection and on the challenging Kaggle EyePACS dataset\cite{9}.
 \par
+There was also a challenge\cite{idrid} hosted on  Grand Challenges in Biomedical Imaging Platform, which is one of the best platforms for biomedical imaging related competitions. One of the challenges in this competition was mainly to segment the lesions in a retinal image. For lesion segmentation task, most of the participating teams used U-Net architecture\cite{unet}. This network works with very few training images and enables the seamless segmentation of high-resolution images by means of an overlap-tile strategy\cite{idrid}. The best approach for lesion segmentation in this competition used U-Net, with data augmentation boosting results significantly. It resulted in AUC of 0.8263, 0.9716, 0.9540 and 0.9883 for MA, HE, SE and EX respectively. 
+\par
+Olaf Ronneberger demonstrated the application of the U-NET to three different segmentation tasks\cite{unet}. one of it was a cell segmentation task in light microscopic images. This segmentation task is part of the ISBI cell tracking challenge 2014 and 2015 \cite{6,7}. Here they achieve an average IOU (Intersection over Union) of 92\% .
+\par
+This motivated us to use U-Net to further modify the network  according to our dataset.
 
-When different presenting features were analyzed for predictive value of the malignant transformation, the IgA type of MGUS was the only variable associated with a higher probability of such an event (P less than 0.025). \cite{monoclonal4} The relative risks of developing MM are the following: 2.4 for each 1 g/dL increase of IgG, serum MC, 3.5 for detectable light chain proteinuria, 4.4 for the increase of 1 unit in log. BMPC percentage, 6.1 for age \textgreater \hspace{0.1cm}  70, 3.6 and 13.1 for a reduction in one or two polyclonal Ig. In conclusion, a study allowed the identification of a particular subset of MGUS patients at very low-risk of evolution, who can be considered as having benign monoclonal gammopathy. \cite{monoclonal5}
-
-\section{Methodology}                                                                     
-Fig. \ref{fig:flowchart} shows us an overview of the methodology pipeline. Our methodology consists of various steps: data pre-processing, feature selection, feature scaling and classification where we start with preparing the dataset, cleaning, training, fine tuning the algorithm, model training and testing. The data-set is taken from UCI\cite{uci}. We use scikit-learn \cite{scikit} and pandas library for all the steps involved in the methodology. Section \ref{ssec:describe} to section \ref{ssec:classification} consist of detailed information of the steps.     
+\subsection{Methodology}                                                                     
+Fig. \ref{fig:dl} shows us an overview of the methodology pipeline. Our methodology consists of various steps: Image augmentation, Image pre-processing, and Modelling where we start with preparing the dataset, augmenting using selective resampling, preprocessing, fine tuning the model, training and testing. The data-set is taken from IDRiD Grand Challenge \cite{idrid}. We mainly  used imgaug, opencv and pytorch\cite{7} and pandas library for all the steps involved in the methodology. Section \ref{sssec:describe} to section \ref{ssec:metric} consist of detailed information of the steps.    
 \par              
-%\begin{figure*}[t]
-%	\centering
-%	\includegraphics[scale=0.7]{../Images/gammo.png}
-%	\caption{Methodology Pipeline Overview}
-%	\label{fig:flowchart}
-%\end{figure*}
+\begin{figure*}[t]
+	\centering
+	\includegraphics[scale=0.7]{image/dl_pipeline.PNG}
+	\caption{Deep Learning Pipeline Overview}
+	\label{fig:dl}
+\end{figure*}
 
-\subsection{Data Description}
-\label{ssec:describe}
-We have a total of 10 attributes including class label \textbf{\textit{death}} which is a binary value. The other 9 attributes are,  
+\subsubsection{Data Description}
+\label{sssec:describe}
+We have a total of 54 train images and 27 test images which is a multi class segmentation problem. 
+\par
+The input images contains the 3 channel retina and the label images contain 4 images of 1 channel diabetic lesions namely Microaneurysms, Haemorrhages, Hard Exudates and Soft Exudates per every input image.
 
+\subsubsection{Merge Segmentation masks}
+\label{sssec:merge}
+
+A single segmentation mask was generated from the available segmentation masks per image by stacking binary masks across an axis and taking the argmax per pixel. This resulted in integer encoding of the 4 categories of the lesions and the background.
 \begin{itemize}
-\item \textbf{\textit{id}} is the patient identifier.
-\item \textbf{\textit{age}} is the age of person in years at the time of detection of MGUS. 
-\item \textbf{\textit{sex}} tells if person is male or female
-\item \textbf{\textit{creat}} is creatinine level when MGUS is diagnosed.
-\item \textbf{\textit{hgb}} is the amount of haemoglobin present in blood at time of MGUS diagnosis.
-\item \textbf{\textit{mspike}} is the size of the monoclonal protein spike at diagnosis.
-\item \textbf{\textit{ptime}} tells us the no.of days from MGUS until diagnosis of a plasma cell malignancy.
-\item \textbf{\textit{pstat}} is a binary value which indicates if there is an interval end in an event.
-\item \textbf{\textit{futime}} tells us the no.of days from diagnosis to last follow-up.
-\end{itemize}
-
+		\item \textbf{0} Background
+		\item \textbf{1} Haemorrhages
+		\item \textbf{2} Hard exudates
+		\item \textbf{3} Microaneurysms 
+  		\item \textbf{4} Soft Exudates
+\end{itemize} 
 
 \subsection{Data Preprocessing}
 \label{ssec:preprocess}
@@ -280,31 +286,25 @@ Table \ref{table:1} shows us the model performance for all the algorithms we hav
 The highest accuracy was achieved by Support Vector Machine with the radial basis function as the kernel. Its accuracy is 82.6\%. Therefore, the data is non-linear and it takes the form of probabilistic density function which has a global maximum. The lowest accuracy is achieved by Gaussian Naive Bayes but the difference in accuracies between the highest and lowest is only 2.9\%. When we consider the data to be linear, the accuracy falls below 60\%. Finally, the overall precision, recall and $F_1$-score for the algorithms are similar for many cases with the highest achieved by Support Vector Machine.
 \par
 
-\begin{table*}[htb]
+\begin{table}[H]
 \centering
- \begin{tabular}{|c| c c c c c|} 
+ \begin{tabular}{|c| c c|} 
  \hline
- Techniques & Training 		Accuracy & Test 	Accuracy & Precision & Recall & $F_1$-score \\ [0.5ex] 
+ Metrics & Train & Test\\ [0.5ex] 
  \hline
- Support Vector Machine & 0.807 & 0.826 & 0.83 & 0.83 & 0.82\\ 
+ Overall Accuracy & 0.9460 & 0.9272\\ 
  \hline
- Linear Discriminant Analysis & 0.786 & 0.815 & 0.81 & 0.82 & 0.81\\
+ Accuracy per class & 0.4570 & 0.4130\\
  \hline
- Logistic Regression & 0.787 & 0.819 & 0.82 & 0.82 & 0.81\\
+ Jaccard Similarity & 0.3431 & 0.3093\\
  \hline
- K - Nearest Neighbor & 0.819 & 0.823 & 0.82 & 0.82 & 0.82\\
- \hline
- Naive Bayes & 0.744 & 0.797 & 0.81 & 0.80 & 0.80\\  
- \hline
- Decision Tree Classifier & 0.796 & 0.815 & 0.81 & 0.82 & 0.82 \\
- \hline
- Random Forest Classifier & 0.799 & 0.808 & 0.81 & 0.81 & 0.79 \\[0.5ex] 
+ Dice Similarity & 0.4253 & 0.3838\\
  \hline
 \end{tabular}
 \vspace*{0.25cm}
-\caption{Model Performance of Algorithms}
+\caption{Model Performance of UNet}
 \label{table:1}
-\end{table*}
+\end{table}
 
 Table \ref{table:2} gives the performance measure for the output labels whose deaths is classified as \textbf{0}. As we can see, the values of the metrics, precision, recall and $F_1$-score are very less when compared to the metrics in table \ref{table:3}. That is because the number of patient with the output label \textbf{0} are very less when compared to the number of patients with output labels \textbf{1}. As the  $F_1$-score is a harmonic mean of precision and recall we can a reasonable values for it unlike the other two. The highest precision, recall and $F_1$-score is achieved by Random Forest Classifier, Decision Tree Classifier respectively. 
 \begin{table}[H]
