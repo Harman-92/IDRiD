@@ -1,7 +1,7 @@
 # Courtesy from https://github.com/kevinzakka
 
 import torch
-
+torch.set_default_tensor_type('torch.cuda.FloatTensor')
 EPS = 1e-10
 
 
@@ -99,7 +99,7 @@ def eval_metrics(true, pred, num_classes):
     for t, p in zip(true, pred):
         hist += _fast_hist(t.flatten(), p.flatten(), num_classes)
 
-    print('Confusion matrix:', hist)
+#     print('Confusion matrix:', hist)
     overall_acc = overall_pixel_accuracy(hist)
     avg_per_class_acc = per_class_pixel_accuracy(hist)
     avg_jacc = jaccard_index(hist)

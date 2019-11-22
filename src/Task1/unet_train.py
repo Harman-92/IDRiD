@@ -5,16 +5,15 @@ import time
 import numpy as np
 from tqdm import tqdm
 import torch.nn.functional as F
-from sklearn.metrics import jaccard_score as jsc
 from metrics import eval_metrics
 
 
-# torch.set_default_tensor_type('torch.FloatTensor')
+
 
 
 class UNetTrain:
-    def __init__(self, train_length, train_loader, validation_length, validation_loader, num_of_classes=5, lr=0.001,
-                 epochs=5):
+    def __init__(self, train_length, train_loader, validation_length, validation_loader, num_of_classes=5, lr=0.01,
+                 epochs=50):
         self.train_length = train_length
         self.train_loader = train_loader
         self.num_of_classes = num_of_classes
@@ -105,11 +104,11 @@ class UNetTrain:
                 end = time.time()
                 # print('Time taken for the batch is {}'.format(end - start))
 
-                if (i + 1) % 2 == 0:
+                if (i + 1) % 100 == 0:
                     print('Loss, Jaccard, Dice at Epoch [{}/{}] and Step [{}/{}] is: {:.4f}, {:.4f}, {:.4f}'
                           .format(epoch + 1, self.epochs, i + 1, total_step, np.mean(train_history_per_epoch['loss']),
-                                  np.mean(train_history_per_epoch['jaccard_score']),
-                                  np.mean(train_history_per_epoch['dice_score'])))
+                                  np.mean([x.item() for x in train_history_per_epoch['jaccard_score']]),
+                                  np.mean([x.item() for x in train_history_per_epoch['dice_score']])))
 
             if save_cp:
                 torch.save(net.state_dict(), model_checkpoints + 'CP{}.pth'.format(epoch + 1))
@@ -140,10 +139,12 @@ class UNetTrain:
 
                     val_end = time.time()
                     # print('Time taken for the batch is {}'.format(val_end - val_start))
-                print('Validation Loss, Jaccard, Dice after Epoch [{}/{}] is: {:.4f}, {:.4f}, {:.4f}'
+                print('Validation Loss, Acc, Acc per class, Jaccard, Dice after Epoch [{}/{}] is: {:.4f}, {:.4f}, {:.4f}, {:.4f}, {:.4f}'
                       .format(epoch + 1, self.epochs, np.mean(validation_history_per_epoch['loss']),
-                              np.mean(validation_history_per_epoch['jaccard_score']),
-                              np.mean(validation_history_per_epoch['dice_score'])))
+                              np.mean([x.item() for x in validation_history_per_epoch['acc']]),
+                              np.mean([x.item() for x in validation_history_per_epoch['ave_acc_per_class']]),
+                              np.mean([x.item() for x in validation_history_per_epoch['jaccard_score']]),
+                              np.mean([x.item() for x in validation_history_per_epoch['dice_score']])))
 
             net.train()
             train_history[epoch] = train_history_per_epoch
@@ -154,32 +155,32 @@ class UNetTrain:
                                                                       np.mean(
                                                                           train_history_per_epoch[
                                                                               'loss']),
-                                                                      np.mean(train_history_per_epoch['acc']),
-                                                                      np.mean(
-                                                                          train_history_per_epoch['ave_acc_per_class']),
-                                                                      np.mean(
+                                                                      np.mean([x.item() for x in train_history_per_epoch['acc']]),
+                                                                      np.mean([x.item() for x in 
+                                                                          train_history_per_epoch['ave_acc_per_class']]),
+                                                                      np.mean([x.item() for x in 
                                                                           train_history_per_epoch[
-                                                                              'jaccard_score']),
-                                                                      np.mean(
+                                                                              'jaccard_score']]),
+                                                                      np.mean([x.item() for x in 
                                                                           train_history_per_epoch[
-                                                                              'dice_score'])))
+                                                                              'dice_score']])))
 
-        total_loss = 0
-        total_acc = 0
-        total_jaccard = 0
-        total_dice = 0
-        total_acc_per_class = 0
-        for k in train_history.keys():
-            total_loss += np.mean(train_history[k]['loss'])
-            total_acc += np.mean(train_history[k]['acc'])
-            total_acc_per_class += np.mean(train_history[k]['ave_acc_per_class'])
-            total_jaccard += np.mean(train_history[k]['jaccard_score'])
-            total_dice += np.mean(train_history[k]['dice_score'])
+#         total_loss = 0
+#         total_acc = 0
+#         total_jaccard = 0
+#         total_dice = 0
+#         total_acc_per_class = 0
+#         for k in train_history.keys():
+#             total_loss += np.mean(train_history[k]['loss'])
+#             total_acc += np.mean(train_history[k]['acc'])
+#             total_acc_per_class += np.mean(train_history[k]['ave_acc_per_class'])
+#             total_jaccard += np.mean(train_history[k]['jaccard_score'])
+#             total_dice += np.mean(train_history[k]['dice_score'])
 
-        print('Metrics after training are Loss: {:.4f}, Overall Accuracy: {:.4f}, Accuracy per class: {:.4f}, '
-              'Train Jaccard: {:.4f}, Train Dice: {:.4f},'.format(total_loss / self.epochs,
-                                                                  total_acc / self.epochs,
-                                                                  total_acc_per_class / self.epochs,
-                                                                  total_jaccard / self.epochs,
-                                                                  total_dice / self.epochs
-                                                                  ))
+#         print('Metrics after training are Loss: {:.4f}, Overall Accuracy: {:.4f}, Accuracy per class: {:.4f}, '
+#               'Train Jaccard: {:.4f}, Train Dice: {:.4f},'.format(total_loss / self.epochs,
+#                                                                   total_acc / self.epochs,
+#                                                                   total_acc_per_class / self.epochs,
+#                                                                   total_jaccard / self.epochs,
+#                                                                   total_dice / self.epochs
+#                                                                   ))
