@@ -1,5 +1,5 @@
 # IDRiD
-Repository consisting of computer vision and machine learning techniques on INRiD dataset
+Repository consisting of computer vision and machine learning techniques on IDRiD dataset
 
 ### Setup of the project 
 
