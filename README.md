@@ -21,4 +21,4 @@ The datasets can be obtained from the IDRiD website which is licensed under a
 Creative Commons Attribution 4.0 International License. 
 
 # Report 
-https://docs.google.com/viewer?url=http://github.com/Harman-92/IDRiD/raw/master/report/paper.pdf
+<embed src=''https://docs.google.com/viewer?url=http://github.com/Harman-92/IDRiD/raw/master/report/paper.pdf'' width="500" height="375">
