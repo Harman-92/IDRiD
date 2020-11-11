@@ -22,3 +22,5 @@ Creative Commons Attribution 4.0 International License.
 
 # Report 
 <embed src=''https://docs.google.com/viewer?url=http://github.com/Harman-92/IDRiD/raw/master/report/paper.pdf'' width="500" height="375">
+<iframe src="https://docs.google.com/viewer?url=http://github.com/Harman-92/IDRiD/raw/master/report/paper.pdf&embedded=true" style="width:600px; height:500px;" frameborder="0"></iframe>
+
